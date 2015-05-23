@@ -1,4 +1,4 @@
-# tylar
+# tylar [![crates.io](https://img.shields.io/crates/v/tylar.svg)](https://crates.io/crates/tylar)
 
 **Ty**pe-**L**evel **A**rithmetic in **R**ust.
 
