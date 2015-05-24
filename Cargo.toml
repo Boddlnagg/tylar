@@ -2,7 +2,7 @@
 name = "tylar"
 version = "0.1.0"
 authors = ["Patrick Reisert <kpreisert@gmail.com>"]
-description = "Type-Level arithmetic in Rust"
+description = "Type-Level Arithmetic in Rust"
 repository = "https://github.com/Boddlnagg/tylar"
 keywords = ["type-level"]
 license = "MIT"
