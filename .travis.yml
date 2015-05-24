@@ -5,7 +5,7 @@ rust:
   - nightly
   - stable
 
-# load travis-cargo
+# load travis-cargo (see https://github.com/huonw/travis-cargo)
 before_script:
   - |
       pip install 'travis-cargo<0.2' --user &&
@@ -16,3 +16,8 @@ script:
   - |
       travis-cargo build &&
       travis-cargo --only nightly test
+      
+env:
+  global:
+    # override the default `--features unstable` used for the nightly branch (currently not used though)
+    - TRAVIS_CARGO_NIGHTLY_FEATURE=nightly

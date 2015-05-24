@@ -6,3 +6,6 @@ description = "Type-Level Arithmetic in Rust"
 repository = "https://github.com/Boddlnagg/tylar"
 keywords = ["type-level"]
 license = "MIT"
+
+[features]
+nightly = []
