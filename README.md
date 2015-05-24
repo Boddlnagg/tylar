@@ -1,4 +1,4 @@
-# tylar [![crates.io](https://img.shields.io/crates/v/tylar.svg)](https://crates.io/crates/tylar)
+# tylar [![crates.io](https://img.shields.io/crates/v/tylar.svg)](https://crates.io/crates/tylar) [![Build Status](https://travis-ci.org/Boddlnagg/tylar.svg?branch=master)](https://travis-ci.org/Boddlnagg/tylar)
 
 **Ty**pe-**L**evel **A**rithmetic in **R**ust.
 
