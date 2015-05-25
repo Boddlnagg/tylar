@@ -3,7 +3,7 @@
 use std::marker::PhantomData;
 
 /// Basic trait implemented by all number types.
-pub trait NumType<N>: Into<i64> + Into<i32> + Into<i16> + Into<i8> {
+pub trait NumType<N>: Into<i64> + Into<i32> + Into<i16> + Into<i8> + Into<isize> {
     /// Creates a new instance of this number type, which is actually a no-op, since
     /// number types are zero-sized. Instances are useful, however, to be converted
     /// into actual integer values, using implementations of the `Into` trait.
@@ -11,7 +11,7 @@ pub trait NumType<N>: Into<i64> + Into<i32> + Into<i16> + Into<i8> {
 }
 
 /// Marker trait for positive numbers (including zero).
-pub trait PosType<N:NumType<N>>: Into<u64> + Into<u32> + Into<u16> + Into<u8> {}
+pub trait PosType<N:NumType<N>>: Into<u64> + Into<u32> + Into<u16> + Into<u8> + Into<usize> {}
 
 /// Marker trait for negative numbers (including zero).
 pub trait NegType<N:NumType<N>> {}
@@ -81,8 +81,8 @@ macro_rules! impl_into_unsigned {
     )+)
 }
 
-impl_into_signed!(i64 i32 i16 i8);
-impl_into_unsigned!(u64 u32 u16 u8);
+impl_into_signed!(i64 i32 i16 i8 isize);
+impl_into_unsigned!(u64 u32 u16 u8 usize);
 
 /// Negation of number types.
 pub trait Neg<A> {
