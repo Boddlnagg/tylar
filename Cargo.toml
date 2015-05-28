@@ -1,7 +1,7 @@
 [package]
 name = "tylar"
-version = "0.1.1"
-authors = ["Patrick Reisert <kpreisert@gmail.com>"]
+version = "0.1.2"
+authors = ["Patrick Reisert"]
 description = "Type-Level Arithmetic in Rust"
 repository = "https://github.com/Boddlnagg/tylar"
 keywords = ["type-level"]
