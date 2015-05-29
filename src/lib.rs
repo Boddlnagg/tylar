@@ -3,7 +3,7 @@
 use std::marker::PhantomData;
 
 /// Basic trait implemented by all number types.
-pub trait NumType<N>: Into<i64> + Into<i32> + Into<i16> + Into<i8> + Into<isize> {
+pub trait NumType: Into<i64> + Into<i32> + Into<i16> + Into<i8> + Into<isize> {
     /// Creates a new instance of this number type, which is actually a no-op, since
     /// number types are zero-sized. Instances are useful, however, to be converted
     /// into actual integer values, using implementations of the `Into` trait.
@@ -11,10 +11,10 @@ pub trait NumType<N>: Into<i64> + Into<i32> + Into<i16> + Into<i8> + Into<isize>
 }
 
 /// Marker trait for positive numbers (including zero).
-pub trait PosType<N:NumType<N>>: Into<u64> + Into<u32> + Into<u16> + Into<u8> + Into<usize> {}
+pub trait PosType: NumType + Into<u64> + Into<u32> + Into<u16> + Into<u8> + Into<usize> {}
 
 /// Marker trait for negative numbers (including zero).
-pub trait NegType<N:NumType<N>> {}
+pub trait NegType: NumType {}
 
 /// The number type for zero (0).
 #[allow(dead_code)]
@@ -35,31 +35,31 @@ pub struct Pred<N> {
     phantom: PhantomData<N>
 }
 
-impl NumType<Zero> for Zero {
+impl NumType for Zero {
     #[inline(always)] fn new() -> Self { Zero }
 }
 
-impl PosType<Zero> for Zero {}
-impl NegType<Zero> for Zero {}
+impl PosType for Zero {}
+impl NegType for Zero {}
 
-impl<N:NumType<N>> NumType<Succ<N>> for Succ<N> {
+impl<N: NumType> NumType for Succ<N> {
     #[inline(always)] fn new() -> Self { Succ { phantom: PhantomData } }
 }
 
-impl<N:NumType<N>> NumType<Pred<N>> for Pred<N> {
+impl<N: NumType> NumType for Pred<N> {
     #[inline(always)] fn new() -> Self { Pred { phantom: PhantomData } }
 }
 
-impl<N:PosType<N> + NumType<N>> PosType<Succ<N>> for Succ<N> {}
-impl<N:NegType<N> + NumType<N>> NegType<Pred<N>> for Pred<N> {}
+impl<N: PosType> PosType for Succ<N> {}
+impl<N: NegType> NegType for Pred<N> {}
 
 macro_rules! impl_into_signed {
     ($($ity:ty)+) => ($(
-        impl<N:NumType<N>> Into<$ity> for Succ<N> {
+        impl<N: NumType> Into<$ity> for Succ<N> {
             #[inline(always)] fn into(self) -> $ity { Into::<$ity>::into(N::new()) + 1 }
         }
 
-        impl<N:NumType<N>> Into<$ity> for Pred<N> {
+        impl<N: NumType> Into<$ity> for Pred<N> {
             #[inline(always)] fn into(self) -> $ity { Into::<$ity>::into(N::new()) - 1 }
         }
 
@@ -71,7 +71,7 @@ macro_rules! impl_into_signed {
 
 macro_rules! impl_into_unsigned {
     ($($ity:ty)+) => ($(
-        impl<N:PosType<N> + NumType<N>> Into<$ity> for Succ<N> {
+        impl<N: PosType> Into<$ity> for Succ<N> {
             #[inline(always)] fn into(self) -> $ity { Into::<$ity>::into(N::new()) + 1 }
         }
 
@@ -85,83 +85,83 @@ impl_into_signed!(i64 i32 i16 i8 isize);
 impl_into_unsigned!(u64 u32 u16 u8 usize);
 
 /// Negation of number types.
-pub trait Neg<A> {
-    /// Result of the operation, i.e. `Out` = –`A`.
+pub trait Neg: NumType {
+    /// Result of the operation, i.e. `Out` = –`Self`.
     type Out;
 }
-impl Neg<Zero> for Zero { type Out = Zero; }
-impl<A:PosType<A>,B:NegType<B>> Neg<Succ<A>> for Succ<A> where A: Neg<A,Out=B> { type Out = Pred<B>; }
-impl<A:NegType<A>,B:PosType<B>> Neg<Pred<A>> for Pred<A> where A: Neg<A,Out=B> { type Out = Succ<B>; }
+impl Neg for Zero { type Out = Zero; }
+impl<A: PosType, B: NegType> Neg for Succ<A> where A: Neg<Out=B> { type Out = Pred<B>; }
+impl<A: NegType, B: PosType> Neg for Pred<A> where A: Neg<Out=B> { type Out = Succ<B>; }
 
 /// Incrementation of number types.
-pub trait Incr<A> {
-    /// Result of the operation, i.e. `Out` = `A` + 1.
+pub trait Incr: NumType {
+    /// Result of the operation, i.e. `Out` = `Self` + 1.
     type Out;
 }
-impl Incr<Zero> for Zero { type Out = Succ<Zero>; }
-impl<A:PosType<A>> Incr<Succ<A>> for Succ<A> { type Out = Succ<Succ<A>>; }
-impl<A:NegType<A>> Incr<Pred<A>> for Pred<A> { type Out = A; }
+impl Incr for Zero { type Out = Succ<Zero>; }
+impl<A: PosType> Incr for Succ<A> { type Out = Succ<Succ<A>>; }
+impl<A: NegType> Incr for Pred<A> { type Out = A; }
 
 /// Decrementation of number types.
-pub trait Decr<A> {
-    /// Result of the operation, i.e. `Out` = `A` – 1.
+pub trait Decr: NumType {
+    /// Result of the operation, i.e. `Out` = `Self` – 1.
     type Out;
 }
-impl Decr<Zero> for Zero { type Out = Pred<Zero>; }
-impl<A:PosType<A>> Decr<Succ<A>> for Succ<A> { type Out = A; }
-impl<A:NegType<A>> Decr<Pred<A>> for Pred<A> { type Out = Pred<Pred<A>>; }
+impl Decr for Zero { type Out = Pred<Zero>; }
+impl<A: PosType> Decr for Succ<A> { type Out = A; }
+impl<A: NegType> Decr for Pred<A> { type Out = Pred<Pred<A>>; }
 
 /// Addition of number types.
-pub trait Add<A,B> {
-    /// Result of the operation, i.e. `Out` = `A` + `B`.
+pub trait Add<RHS>: NumType {
+    /// Result of the operation, i.e. `Out` = `Self` + `RHS`.
     type Out;
 }
-impl<A> Add<Zero,A> for Zero { type Out = A; }
-impl<A:PosType<A>,B,C> Add<Succ<A>,B> for Succ<A> where B:Incr<B,Out=C>, A:Add<A,C>  { type Out = A::Out; }
-impl<A:NegType<A>,B,C> Add<Pred<A>,B> for Pred<A> where B:Decr<B,Out=C>, A:Add<A,C>  { type Out = A::Out; }
+impl<RHS> Add<RHS> for Zero { type Out = RHS; }
+impl<A: PosType, RHS, B> Add<RHS> for Succ<A> where RHS: Incr<Out=B>, A: Add<B>  { type Out = A::Out; }
+impl<A: NegType, RHS, B> Add<RHS> for Pred<A> where RHS: Decr<Out=B>, A: Add<B>  { type Out = A::Out; }
 
 /// Subtraction of number types.
-pub trait Sub<A,B> {
-    /// Result of the operation, i.e. `Out` = `A` – `B`.
+pub trait Sub<RHS>: NumType {
+    /// Result of the operation, i.e. `Out` = `Self` – `RHS`.
     type Out;
 }
-impl<A:NumType<A>,B:NumType<B>,C,T:NumType<T>> Sub<A,B> for T where B:Neg<B,Out=C>, A:Add<A,C> { type Out = A::Out; }
+impl<A, RHS, B> Sub<RHS> for A where RHS: Neg<Out=B>, A: Add<B> { type Out = A::Out; }
 
 /// Halving of number types.
 /// `Div<_,P2>` could be used instead of this, but `Div` stresses the typechecker more
 /// than `Halve`, so that `Halve` can be used with larger numbers without running into
 /// the recursion limit.
-pub trait Halve<A> {
-    /// Result of the operation, i.e. `Out` = `A` / 2.
+pub trait Halve {
+    /// Result of the operation, i.e. `Out` = `Self` / 2.
     type Out;
 }
-impl Halve<Zero> for Zero { type Out = Zero; }
-impl<A:PosType<A>,B> Halve<Succ<Succ<A>>> for Succ<Succ<A>> where A:Halve<A,Out=B>  { type Out = Succ<B>; }
-impl<A:NegType<A>,B> Halve<Pred<Pred<A>>> for Pred<Pred<A>> where A:Halve<A,Out=B>  { type Out = Pred<B>; }
+impl Halve for Zero { type Out = Zero; }
+impl<A: PosType, B> Halve for Succ<Succ<A>> where A: Halve<Out=B>  { type Out = Succ<B>; }
+impl<A: NegType, B> Halve for Pred<Pred<A>> where A: Halve<Out=B>  { type Out = Pred<B>; }
 
 /// Subtraction of number types.
-pub trait Mul<A,B> {
-    /// Result of the operation, i.e. `Out` = `A` * `B`.
+pub trait Mul<RHS> {
+    /// Result of the operation, i.e. `Out` = `Self` * `RHS`.
     type Out;
 }
-impl<N:NumType<N>> Mul<Zero,N> for Zero { type Out = Zero; }
-impl<A:PosType<A>,B,C> Mul<Succ<A>,B> for Succ<A> where A:Mul<A,B,Out=C>, B:Add<B,C> { type Out = B::Out; }
-impl<A:NegType<A>,B,NB,C> Mul<Pred<A>,B> for Pred<A> where A:Mul<A,B,Out=C>, B:Neg<B,Out=NB>, NB:Add<NB,C> { type Out = NB::Out; }
+impl<N: NumType> Mul<N> for Zero { type Out = Zero; }
+impl<A: PosType, RHS, B> Mul<RHS> for Succ<A> where A: Mul<RHS, Out=B>, RHS: Add<B> { type Out = RHS::Out; }
+impl<A: NegType, RHS, B, C> Mul<RHS> for Pred<A> where A: Mul<RHS, Out=C>, RHS: Neg<Out=B>, B: Add<C> { type Out = B::Out; }
 
 /// Division of number types.
-pub trait Div<A,B> {
-    /// Result of the operation, i.e. `Out` = `A` / `B`.
+pub trait Div<RHS> {
+    /// Result of the operation, i.e. `Out` = `Self` / `RHS`.
     type Out;
 }
-impl<A:PosType<A>> Div<Zero,Succ<A>> for Zero { type Out = Zero; }
-impl<A:NegType<A>> Div<Zero,Pred<A>> for Zero { type Out = Zero; }
-impl<A:NumType<A>,B:NumType<B>,C:NumType<C>> Div<Succ<A>,Succ<B>> for Succ<A> where A:Sub<A,B,Out=C>, C:Div<C,Succ<B>> { type Out = Succ<C::Out>; }
-impl<N:NegType<N>,NN:NegType<NN>,P:PosType<P>,PP:PosType<PP>> Div<Pred<N>,Pred<NN>> for Pred<N>
-    where N:Neg<N,Out=P>, NN:Neg<NN,Out=PP>, Succ<P>:Div<Succ<P>,Succ<PP>> { type Out = <Succ<P> as Div<Succ<P>,Succ<PP>>>::Out; }
-impl<P:NumType<P>, N:NegType<N>,PP:NumType<PP>,PPP:NumType<PPP>> Div<Succ<P>,Pred<N>> for Succ<P>
-    where N:Neg<N,Out=PP>, Succ<P>:Div<Succ<P>,Succ<PP>,Out=Succ<PPP>>, Succ<PPP>:Neg<Succ<PPP>> { type Out = <Succ<PPP> as Neg<Succ<PPP>>>::Out; }
-impl<P:NumType<P>, N:NegType<N>,PP:NumType<PP>,PPP:NumType<PPP>> Div<Pred<N>,Succ<P>> for Pred<N>
-    where N:Neg<N,Out=PP>, Succ<PP>:Div<Succ<PP>,Succ<P>,Out=Succ<PPP>>, Succ<PPP>:Neg<Succ<PPP>> { type Out = <Succ<PPP> as Neg<Succ<PPP>>>::Out; }
+impl<A: PosType> Div<Succ<A>> for Zero { type Out = Zero; }
+impl<A: NegType> Div<Pred<A>> for Zero { type Out = Zero; }
+impl<A: NumType, B: NumType, C: NumType> Div<Succ<B>> for Succ<A> where A: Sub<B, Out=C>, C: Div<Succ<B>> { type Out = Succ<C::Out>; }
+impl<N: NegType, NN: NegType, P: PosType, PP: PosType> Div<Pred<NN>> for Pred<N>
+    where N: Neg<Out=P>, NN: Neg<Out=PP>, Succ<P>: Div<Succ<PP>> { type Out = <Succ<P> as Div<Succ<PP>>>::Out; }
+impl<P: NumType, N: NegType, PP: NumType, PPP: NumType> Div<Pred<N>> for Succ<P>
+    where N: Neg<Out=PP>, Succ<P>: Div<Succ<PP>, Out=Succ<PPP>>, Succ<PPP>: Neg { type Out = <Succ<PPP> as Neg>::Out; }
+impl<P: NumType, N: NegType, PP: NumType, PPP: NumType> Div<Succ<P>> for Pred<N>
+    where N: Neg<Out=PP>, Succ<PP>: Div<Succ<P>, Out=Succ<PPP>>, Succ<PPP>: Neg { type Out = <Succ<PPP> as Neg>::Out; }
 
 /// Shorthand for the number 1 (the first successor of zero).
 pub type P1 = Succ<Zero>;
@@ -230,19 +230,19 @@ fn into_number() {
 
 #[test]
 fn operations() {
-    fn neg<A:NumType<A>,Out:NumType<Out>>() -> i32 where A:Neg<A,Out=Out> {
+    fn neg<A: NumType, Out: NumType>() -> i32 where A: Neg<Out=Out> {
         Out::new().into()
     }
     
-    fn add<A:NumType<A>,B:NumType<B>,Out:NumType<Out>>() -> i32 where A:Add<A,B,Out=Out> {
+    fn add<A: NumType, B: NumType, Out: NumType>() -> i32 where A: Add<B, Out=Out> {
         Out::new().into()
     }
     
-    fn sub<A:NumType<A>,B:NumType<B>,Out:NumType<Out>>() -> i32 where A:Sub<A,B,Out=Out> {
+    fn sub<A: NumType, B: NumType, Out: NumType>() -> i32 where A: Sub<B, Out=Out> {
         Out::new().into()
     }
     
-    fn halve<A:NumType<A>,Out:NumType<Out>>() -> i32 where A:Halve<A,Out=Out> {
+    fn halve<A: NumType, Out: NumType>() -> i32 where A: Halve<Out=Out> {
         Out::new().into()
     }
     
@@ -261,7 +261,7 @@ fn operations() {
 
 #[test]
 fn division() {
-    fn div<A:NumType<A>,B:NumType<B>,Out:NumType<Out>>() -> i32 where A:Div<A,B,Out=Out> {
+    fn div<A: NumType, B: NumType, Out: NumType>() -> i32 where A: Div<B, Out=Out> {
         Out::new().into()
     }
     
@@ -291,7 +291,7 @@ fn division() {
 #[test]
 fn multiplication() {
     
-    fn mul<A:NumType<A>,B:NumType<B>,Out:NumType<Out>>() -> i32 where A:Mul<A,B,Out=Out> {
+    fn mul<A: NumType, B: NumType, Out: NumType>() -> i32 where A: Mul<B, Out=Out> {
         Out::new().into()
     }
     
