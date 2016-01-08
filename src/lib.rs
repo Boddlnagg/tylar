@@ -87,7 +87,7 @@ impl_into_unsigned!(u64 u32 u16 u8 usize);
 /// Negation of number types.
 pub trait Neg: NumType {
     /// Result of the operation, i.e. `Out` = –`Self`.
-    type Out;
+    type Out: NumType;
 }
 impl Neg for Zero { type Out = Zero; }
 impl<A: PosType, B: NegType> Neg for Succ<A> where A: Neg<Out=B> { type Out = Pred<B>; }
@@ -96,7 +96,7 @@ impl<A: NegType, B: PosType> Neg for Pred<A> where A: Neg<Out=B> { type Out = Su
 /// Incrementation of number types.
 pub trait Incr: NumType {
     /// Result of the operation, i.e. `Out` = `Self` + 1.
-    type Out;
+    type Out: NumType;
 }
 impl Incr for Zero { type Out = Succ<Zero>; }
 impl<A: PosType> Incr for Succ<A> { type Out = Succ<Succ<A>>; }
@@ -105,7 +105,7 @@ impl<A: NegType> Incr for Pred<A> { type Out = A; }
 /// Decrementation of number types.
 pub trait Decr: NumType {
     /// Result of the operation, i.e. `Out` = `Self` – 1.
-    type Out;
+    type Out: NumType;
 }
 impl Decr for Zero { type Out = Pred<Zero>; }
 impl<A: PosType> Decr for Succ<A> { type Out = A; }
@@ -114,44 +114,44 @@ impl<A: NegType> Decr for Pred<A> { type Out = Pred<Pred<A>>; }
 /// Addition of number types.
 pub trait Add<RHS>: NumType {
     /// Result of the operation, i.e. `Out` = `Self` + `RHS`.
-    type Out;
+    type Out: NumType;
 }
-impl<RHS> Add<RHS> for Zero { type Out = RHS; }
-impl<A: PosType, RHS, B> Add<RHS> for Succ<A> where RHS: Incr<Out=B>, A: Add<B>  { type Out = A::Out; }
-impl<A: NegType, RHS, B> Add<RHS> for Pred<A> where RHS: Decr<Out=B>, A: Add<B>  { type Out = A::Out; }
+impl<RHS: NumType> Add<RHS> for Zero { type Out = RHS; }
+impl<A: PosType, RHS, B: NumType> Add<RHS> for Succ<A> where RHS: Incr<Out=B>, A: Add<B>  { type Out = A::Out; }
+impl<A: NegType, RHS, B: NumType> Add<RHS> for Pred<A> where RHS: Decr<Out=B>, A: Add<B>  { type Out = A::Out; }
 
 /// Subtraction of number types.
 pub trait Sub<RHS>: NumType {
     /// Result of the operation, i.e. `Out` = `Self` – `RHS`.
-    type Out;
+    type Out: NumType;
 }
-impl<A, RHS, B> Sub<RHS> for A where RHS: Neg<Out=B>, A: Add<B> { type Out = A::Out; }
+impl<A, RHS, B: NumType> Sub<RHS> for A where RHS: Neg<Out=B>, A: Add<B> { type Out = A::Out; }
 
 /// Halving of number types.
 /// `Div<_,P2>` could be used instead of this, but `Div` stresses the typechecker more
 /// than `Halve`, so that `Halve` can be used with larger numbers without running into
 /// the recursion limit.
-pub trait Halve {
+pub trait Halve: NumType {
     /// Result of the operation, i.e. `Out` = `Self` / 2.
-    type Out;
+    type Out: NumType;
 }
 impl Halve for Zero { type Out = Zero; }
-impl<A: PosType, B> Halve for Succ<Succ<A>> where A: Halve<Out=B>  { type Out = Succ<B>; }
-impl<A: NegType, B> Halve for Pred<Pred<A>> where A: Halve<Out=B>  { type Out = Pred<B>; }
+impl<A: PosType, B: NumType> Halve for Succ<Succ<A>> where A: Halve<Out=B>  { type Out = Succ<B>; }
+impl<A: NegType, B: NumType> Halve for Pred<Pred<A>> where A: Halve<Out=B>  { type Out = Pred<B>; }
 
 /// Subtraction of number types.
-pub trait Mul<RHS> {
+pub trait Mul<RHS>: NumType {
     /// Result of the operation, i.e. `Out` = `Self` * `RHS`.
-    type Out;
+    type Out: NumType;
 }
 impl<N: NumType> Mul<N> for Zero { type Out = Zero; }
-impl<A: PosType, RHS, B> Mul<RHS> for Succ<A> where A: Mul<RHS, Out=B>, RHS: Add<B> { type Out = RHS::Out; }
-impl<A: NegType, RHS, B, C> Mul<RHS> for Pred<A> where A: Mul<RHS, Out=C>, RHS: Neg<Out=B>, B: Add<C> { type Out = B::Out; }
+impl<A: PosType, RHS, B: NumType> Mul<RHS> for Succ<A> where A: Mul<RHS, Out=B>, RHS: Add<B> { type Out = RHS::Out; }
+impl<A: NegType, RHS, B, C: NumType> Mul<RHS> for Pred<A> where A: Mul<RHS, Out=C>, RHS: Neg<Out=B>, B: Add<C> { type Out = B::Out; }
 
 /// Division of number types.
-pub trait Div<RHS> {
+pub trait Div<RHS>: NumType {
     /// Result of the operation, i.e. `Out` = `Self` / `RHS`.
-    type Out;
+    type Out: NumType;
 }
 impl<A: PosType> Div<Succ<A>> for Zero { type Out = Zero; }
 impl<A: NegType> Div<Pred<A>> for Zero { type Out = Zero; }

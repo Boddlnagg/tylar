@@ -7,7 +7,7 @@ impl<N: NumType, Times4, Plus2> Calculation1 for N where N: Mul<N4, Out=Times4>,
 
 // Type-level function, calculating (1 + N) * (1 - N)
 trait Calculation2 { type Out; }
-impl<N: NumType, OnePlusN, OneMinusN> Calculation2 for N where P1: Sub<N, Out=OneMinusN>, P1: Add<N, Out=OnePlusN>, OnePlusN: Mul<OneMinusN> { type Out = OnePlusN::Out; }
+impl<N: NumType, OnePlusN, OneMinusN: NumType> Calculation2 for N where P1: Sub<N, Out=OneMinusN>, P1: Add<N, Out=OnePlusN>, OnePlusN: Mul<OneMinusN> { type Out = OnePlusN::Out; }
 
 fn main() {
     // Unfortunately these first 5 examples don't work in Rust 1.0
