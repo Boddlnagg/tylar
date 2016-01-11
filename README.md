@@ -21,3 +21,19 @@ println!("-2 + 5 = {}", result); // prints `-2 + 5 = 3`
 For more, see [examples/basics.rs](examples/basics.rs) and run `cargo run --example basics`.
 
 Unfortunately these examples (and therefore also `cargo test`) do not work with Rust 1.0, but *tylar* itself is compatible and usable with Rust 1.0.
+
+## License
+
+Licensed under either of
+
+ * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally
+submitted for inclusion in the work by you, as defined in the Apache-2.0
+license, shall be dual licensed as above, without any additional terms or
+conditions.
