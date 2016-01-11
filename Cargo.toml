@@ -5,7 +5,7 @@ authors = ["Patrick Reisert"]
 description = "Type-Level Arithmetic in Rust"
 repository = "https://github.com/Boddlnagg/tylar"
 keywords = ["type-level"]
-license = "MIT"
+license = "MIT OR Apache-2.0"
 
 [features]
 nightly = []
